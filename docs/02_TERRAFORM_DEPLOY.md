@@ -62,14 +62,7 @@ terraform plan
 - ✅ Amazon Managed Grafana
 - ✅ CloudWatch Alarms
 - ✅ IAM Roles & Policies
-
-**예상 비용 (서울 리전):**
-```
-Plan: 55 to add, 0 to change, 0 to destroy.
-
-월간 예상 비용: ~$571
-```
-
+ 
 ### 3. 배포 실행
 ```bash
 terraform apply
