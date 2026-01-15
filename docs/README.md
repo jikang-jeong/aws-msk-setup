@@ -20,8 +20,8 @@ MSK 클러스터를 처음 구축한다면 **다음 순서대로** 진행하세�
 사전 준비 및 초기 설정
 - AWS CLI, Terraform 설치
 - EC2 키페어 생성
-- Lambda 함수 빌드
-- terraform.tfvars 설정
+- Lambda 함수 빌드 (app/build.sh)
+- terraform/variables.tf 설정
 
 **소요 시간:** 15-20분
 
@@ -84,23 +84,31 @@ Prometheus & Grafana 수동 설정
 
 ```
 msk-ha-cluster/
-├── README.md                # 프로젝트 소개
-├── docs/                    # 📂 문서 (여기)
-│   ├── 01_GETTING_STARTED.md
-│   ├── 02_TERRAFORM_DEPLOY.md
-│   ├── 03_MONITORING.md
-│   ├── 04_KAFKA_UI.md
-│   ├── 05_TESTING.md
-│   └── MSK_HA_SETUP_GUIDE.md
-├── terraform/               # IaC
-│   ├── *.tf
-│   ├── terraform.tfvars.example
+├── README.md                          # 프로젝트 소개
+├── .gitignore                         # Git 제외 파일
+├── docs/                              # 📂 문서 (여기)
+│   ├── README.md                      # 문서 인덱스 (이 파일)
+│   ├── 01_GETTING_STARTED.md          # 사전 준비
+│   ├── 02_TERRAFORM_DEPLOY.md         # 인프라 배포
+│   ├── 03_MONITORING.md               # 모니터링 설정
+│   ├── 04_KAFKA_UI.md                 # Kafka-UI 설정
+│   ├── 05_TESTING.md                  # 테스트 및 검증
+│   └── MSK_HA_SETUP_GUIDE.md          # MSK HA 이론
+├── terraform/                         # Infrastructure as Code
+│   ├── main.tf                        # MSK, VPC, 네트워크
+│   ├── app.tf                         # Lambda, API Gateway
+│   ├── bastion.tf                     # Bastion, NAT Gateway
+│   ├── monitoring.tf                  # Prometheus, Grafana
+│   ├── grafana-setup.tf               # Grafana 자동 설정
+│   ├── dashboard.tf                   # CloudWatch 대시보드
+│   ├── variables.tf                   # ⚙️ 변수 정의 (여기서 설정!)
+│   ├── outputs.tf                     # 출력 값
 │   └── dashboards/
-│       └── msk-overview.json
-└── app/                     # Lambda 코드 (테스트용 Pub/Sub)
-    ├── producer.py          # 테스트용 메시지 발행
-    ├── consumer.py          # 테스트용 메시지 소비
-    └── build.sh
+│       └── msk-overview.json          # Grafana 대시보드
+└── app/                               # Lambda 코드 (테스트용 Pub/Sub)
+    ├── producer.py                    # 테스트용 메시지 발행
+    ├── consumer.py                    # 테스트용 메시지 소비
+    └── build.sh                       # 빌드 스크립트
 ```
 
 ---
@@ -139,12 +147,12 @@ msk-ha-cluster/
 
 ```bash
 # 1. Lambda 빌드
-cd app && bash build.sh
+cd app
+bash build.sh  # app/producer.zip, app/consumer.zip 생성
 
-# 2. Terraform 설정
+# 2. Terraform 변수 설정
 cd ../terraform
-cp terraform.tfvars.example terraform.tfvars
-vi terraform.tfvars  # 본인 IP, 키 이름 입력
+vi variables.tf  # key_pair_name, allowed_cidr_blocks 수정
 
 # 3. 배포
 terraform init

@@ -13,8 +13,8 @@ Terraform을 사용하여 MSK HA Cluster 인프라를 배포하는 가이드입�
 - [ ] Terraform 설치 완료
 - [ ] AWS CLI 설정 완료
 - [ ] EC2 키페어 생성 (`msk-key.pem`)
-- [ ] Lambda 함수 빌드 (`app/*.zip`)
-- [ ] terraform.tfvars 설정 완료
+- [ ] Lambda 함수 빌드 (`app/producer.zip`, `app/consumer.zip`)
+- [ ] terraform/variables.tf 설정 완료 (key_pair_name, allowed_cidr_blocks)
 
 👉 미완료 시: [01_GETTING_STARTED.md](./01_GETTING_STARTED.md)로 돌아가세요
 
@@ -24,7 +24,7 @@ Terraform을 사용하여 MSK HA Cluster 인프라를 배포하는 가이드입�
 
 ### 1. 초기화
 ```bash
-cd terraform
+cd terraform  # terraform/ 디렉토리로 이동
 terraform init
 ```
 

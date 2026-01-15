@@ -10,6 +10,23 @@ AWS MSK (Managed Streaming for Apache Kafka)를 사용한 엔터프라이즈급 
 
 👉 **[docs/README.md](./docs/README.md)** - 시작하기
 
+### ⚠️ 배포 전 필수 설정
+
+**terraform/variables.tf** 파일에서 다음 값을 **반드시 수정**하세요:
+
+```hcl
+variable "key_pair_name" {
+  default = "msk-key"  # 본인의 EC2 키페어 이름
+}
+
+variable "allowed_cidr_blocks" {
+  default = ["1.2.3.4/32"]  # ⚠️ 본인의 공인 IP로 변경!
+  # 현재 IP 확인: curl https://checkip.amazonaws.com
+}
+```
+
+> **보안 주의**: Public repository에 올릴 때는 실제 IP 대신 예시 IP를 유지하세요!
+
 ### 📖 문서 구조
 
 1. **[시작하기](./docs/01_GETTING_STARTED.md)** - 사전 준비 및 초기 설정 (15-20분)
@@ -75,7 +92,23 @@ AWS MSK (Managed Streaming for Apache Kafka)를 사용한 엔터프라이즈급 
                     (Metrics, Logs, Alarms)
 ```
 
---- 
+---
+
+## 💰 예상 비용 (서울 리전 기준)
+
+| 리소스 | 사양 | 월간 비용 |
+|--------|------|----------|
+| MSK Cluster | kafka.m5.large × 3 | ~$460 |
+| EBS Volume | 100GB × 3 | ~$30 |
+| NAT Gateway | 1EA | ~$43 |
+| Bastion EC2 | t3.micro | ~$9 |
+| Amazon Managed Prometheus | 기본 | ~$20 |
+| Amazon Managed Grafana | 기본 | ~$9 |
+| Lambda & API Gateway | 무료 티어 | $0 |
+| **합계** | | **~$571/월** |
+
+---
+
 ## 🛠️ 기술 스택
 
 **Infrastructure:**
@@ -105,32 +138,31 @@ AWS MSK (Managed Streaming for Apache Kafka)를 사용한 엔터프라이즈급 
 
 ```
 msk-ha-cluster/
-├── README.md                    # 프로젝트 소개 (이 파일)
-├── .gitignore                   # Git 제외 파일
-├── docs/                        # 📂 문서 (단계별 가이드)
-│   ├── README.md                # 문서 인덱스
-│   ├── 01_GETTING_STARTED.md    # 사전 준비
-│   ├── 02_TERRAFORM_DEPLOY.md   # 인프라 배포
-│   ├── 03_MONITORING.md         # 모니터링 설정
-│   ├── 04_KAFKA_UI.md          # Kafka-UI 설정
-│   ├── 05_TESTING.md           # 테스트 및 검증
-│   └── MSK_HA_SETUP_GUIDE.md   # MSK HA 이론
-├── terraform/                   # Infrastructure as Code
-│   ├── main.tf                  # MSK, VPC, 네트워크
-│   ├── app.tf                   # Lambda, API Gateway
-│   ├── bastion.tf               # Bastion, NAT Gateway
-│   ├── monitoring.tf            # Prometheus, Grafana
-│   ├── grafana-setup.tf         # Grafana 자동 설정
-│   ├── dashboard.tf             # CloudWatch 대시보드
-│   ├── variables.tf             # 변수 정의
-│   ├── outputs.tf               # 출력 값
-│   ├── terraform.tfvars.example # 설정 예제
+├── README.md                          # 프로젝트 소개 (이 파일)
+├── .gitignore                         # Git 제외 파일
+├── docs/                              # 📂 문서 (단계별 가이드)
+│   ├── README.md                      # 문서 인덱스
+│   ├── 01_GETTING_STARTED.md          # 사전 준비
+│   ├── 02_TERRAFORM_DEPLOY.md         # 인프라 배포
+│   ├── 03_MONITORING.md               # 모니터링 설정
+│   ├── 04_KAFKA_UI.md                 # Kafka-UI 설정
+│   ├── 05_TESTING.md                  # 테스트 및 검증
+│   └── MSK_HA_SETUP_GUIDE.md          # MSK HA 이론
+├── terraform/                         # Infrastructure as Code
+│   ├── main.tf                        # MSK, VPC, 네트워크
+│   ├── app.tf                         # Lambda, API Gateway
+│   ├── bastion.tf                     # Bastion, NAT Gateway
+│   ├── monitoring.tf                  # Prometheus, Grafana
+│   ├── grafana-setup.tf               # Grafana 자동 설정
+│   ├── dashboard.tf                   # CloudWatch 대시보드
+│   ├── variables.tf                   # ⚙️ 변수 정의 (여기서 설정!)
+│   ├── outputs.tf                     # 출력 값
 │   └── dashboards/
-│       └── msk-overview.json    # Grafana 대시보드
-└── app/                         # Lambda 애플리케이션 (테스트용)
-    ├── producer.py              # 테스트용 메시지 발행
-    ├── consumer.py              # 테스트용 메시지 소비
-    └── build.sh                 # 빌드 스크립트
+│       └── msk-overview.json          # Grafana 대시보드
+└── app/                               # Lambda 애플리케이션 (테스트용)
+    ├── producer.py                    # 테스트용 메시지 발행
+    ├── consumer.py                    # 테스트용 메시지 소비
+    └── build.sh                       # 빌드 스크립트
 ```
 
 ---
@@ -160,12 +192,12 @@ msk-ha-cluster/
 
 ```bash
 # 1. Lambda 빌드
-cd app && bash build.sh
+cd app
+bash build.sh  # app/producer.zip, app/consumer.zip 생성
 
-# 2. Terraform 설정
+# 2. Terraform 변수 설정
 cd ../terraform
-cp terraform.tfvars.example terraform.tfvars
-vi terraform.tfvars  # 본인 IP, 키 이름 입력
+vi variables.tf  # key_pair_name, allowed_cidr_blocks 수정
 
 # 3. 배포
 terraform init

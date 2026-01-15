@@ -170,7 +170,7 @@ Lambda 함수 코드를 zip 파일로 패키징합니다.
 
 ```bash
 cd app
-bash build.sh
+bash build.sh  # app/build.sh 실행
 ```
 
 **빌드 과정:**
@@ -207,69 +207,74 @@ zip -r consumer.zip consumer.py kafka/
 
 ## ⚙️ Terraform 변수 설정
 
-### 1. 변수 파일 생성
+### 1. terraform/variables.tf 파일 편집
+
 ```bash
 cd ../terraform
 
-# 예제 파일 복사
-cp terraform.tfvars.example terraform.tfvars
+# 에디터로 variables.tf 열기
+vi variables.tf  # 또는 nano, code 등
 ```
 
-### 2. terraform.tfvars 편집
-```bash
-# 에디터로 열기
-vi terraform.tfvars  # 또는 nano, code 등
-```
+### 2. 필수 변수 수정
 
-**필수 설정:**
+**terraform/variables.tf** 파일에서 다음 값들을 수정하세요:
+
 ```hcl
-# AWS Region
-region = "ap-northeast-2"
+variable "key_pair_name" {
+  description = "EC2 SSH 키페어 이름 (예: msk-key)"
+  type        = string
+  default     = "msk-key"  # ← 본인이 생성한 키페어 이름으로 변경
+}
 
-# Cluster Name
-cluster_name = "msk-ha-cluster"
+variable "allowed_cidr_blocks" {
+  description = "Bastion SSH/Grafana 접근 허용 IP"
+  type        = list(string)
+  default     = ["1.2.3.4/32"]  # ⚠️ 본인의 공인 IP로 변경 필수!
+}
 
-# EC2 Key Pair (위에서 생성한 키)
-key_pair_name = "msk-key"
-
-# SSH/Grafana 접근 허용 IP (현재 IP로 변경)
-allowed_cidr_blocks = ["203.0.113.42/32"]  # ← 본인 IP
-
-# Grafana Admin User ID (Optional)
-# AWS SSO User ID를 입력하면 자동으로 Admin 권한 부여
-# 비워두면 수동 설정 필요
-grafana_admin_user_id = ""  # 또는 "c4f8b488-4081-703e-da8f-5cfc374d0e05"
-```
-
-**선택 설정:**
-```hcl
-# MSK Configuration
-kafka_version = "3.6.0"
-broker_instance_type = "kafka.m5.large"  # 또는 kafka.m5.xlarge
-ebs_volume_size = 100
-
-# Network
-vpc_cidr = "10.0.0.0/16"
-
-# Tags
-tags = {
-  Environment = "production"
-  Project     = "msk-ha-cluster"
+variable "grafana_admin_user_id" {
+  description = "AWS SSO User ID for Grafana admin access (optional)"
+  type        = string
+  default     = ""  # 선택: AWS SSO User ID 입력 (예: "c4f8b488-4081-703e-da8f-5cfc374d0e05")
 }
 ```
 
-**보안 주의사항:**
-- ⚠️ `allowed_cidr_blocks`는 **반드시** 본인 IP로 제한
-- ⚠️ `0.0.0.0/0`은 validation 규칙으로 차단됨
-- ⚠️ `terraform.tfvars`는 .gitignore에 포함되어 Git에 커밋되지 않음
+### 3. 선택 변수 (필요시 수정)
 
-### 3. 변수 확인
+기본값이 적절하면 수정하지 않아도 됩니다:
+
+```hcl
+variable "region" {
+  default = "ap-northeast-2"  # AWS 리전
+}
+
+variable "cluster_name" {
+  default = "msk-ha-cluster"  # 클러스터 이름
+}
+
+variable "broker_instance_type" {
+  default = "kafka.m5.large"  # 또는 "kafka.m5.xlarge"
+}
+
+variable "ebs_volume_size" {
+  default = 100  # GB
+}
+```
+
+### 4. 보안 주의사항
+
+> ⚠️ **중요**: terraform/variables.tf 파일을 Git에 커밋할 때
+> - `allowed_cidr_blocks`에 본인의 실제 IP가 들어가므로 **public repository에 올리지 마세요**
+> - 또는 Git 커밋 전에 다시 예시 IP(`["1.2.3.4/32"]`)로 변경하세요
+> - Public repository용으로는 예시 값만 유지하세요
+
+### 5. 변수 확인
+
 ```bash
-# 변수 검증
+# Terraform 초기화 및 검증
+terraform init
 terraform validate
-
-# 예상 비용 확인 (infracost 설치 필요)
-infracost breakdown --path .
 ```
 
 ---
@@ -284,8 +289,8 @@ infracost breakdown --path .
 - [ ] Docker 설치 완료
 - [ ] EC2 키페어 생성 완료 (`msk-key.pem`)
 - [ ] 현재 IP 확인 완료
-- [ ] Lambda 함수 빌드 완료 (`app/*.zip`)
-- [ ] terraform.tfvars 설정 완료
+- [ ] Lambda 함수 빌드 완료 (`app/producer.zip`, `app/consumer.zip`)
+- [ ] terraform/variables.tf 설정 완료 (key_pair_name, allowed_cidr_blocks)
 - [ ] AWS SSO User ID 확인 (Optional)
 
 ---
