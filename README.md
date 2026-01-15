@@ -94,21 +94,6 @@ variable "allowed_cidr_blocks" {
 
 ---
 
-## 💰 예상 비용 (서울 리전 기준)
-
-| 리소스 | 사양 | 월간 비용 |
-|--------|------|----------|
-| MSK Cluster | kafka.m5.large × 3 | ~$460 |
-| EBS Volume | 100GB × 3 | ~$30 |
-| NAT Gateway | 1EA | ~$43 |
-| Bastion EC2 | t3.micro | ~$9 |
-| Amazon Managed Prometheus | 기본 | ~$20 |
-| Amazon Managed Grafana | 기본 | ~$9 |
-| Lambda & API Gateway | 무료 티어 | $0 |
-| **합계** | | **~$571/월** |
-
----
-
 ## 🛠️ 기술 스택
 
 **Infrastructure:**
@@ -203,8 +188,8 @@ vi variables.tf  # key_pair_name, allowed_cidr_blocks 수정
 terraform init
 terraform apply
 
-# 4. Bastion 접속
-ssh -i msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
+# 4. Bastion 접속 (terraform 폴더에서)
+ssh -i ../msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
 
 # 5. Kafka-UI 실행 (Bastion에서)
 docker run -d --name kafka-ui -p 8080:8080 \

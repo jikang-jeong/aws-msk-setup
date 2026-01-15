@@ -9,8 +9,16 @@ Bastion EC2에서 kafka-ui를 Docker로 실행하여 MSK 클러스터를 관리�
 
 ## 1. Bastion 접속
 
+**프로젝트 루트에서:**
 ```bash
-ssh -i msk-key.pem ec2-user@$(cd ../terraform && terraform output -raw bastion_public_ip)
+# 프로젝트 루트에 msk-key.pem이 있는 경우
+ssh -i msk-key.pem ec2-user@$(cd terraform && terraform output -raw bastion_public_ip)
+```
+
+**terraform 폴더에서:**
+```bash
+cd terraform
+ssh -i ../msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
 ```
 
 ---
@@ -101,28 +109,52 @@ docker start kafka-ui
 
 ## 7. 보안 참고
 
-현재 설정:
-- 8080 포트가 `0.0.0.0/0`으로 열려 있음
-- 인증 없음
+### 현재 보안 설정 (terraform/bastion.tf)
 
-**프로덕션 권장 사항:**
-1. 보안그룹에서 특정 IP만 허용
-2. Bastion 보안그룹 수정:
-   ```bash
-   # 내 IP만 허용
-   aws ec2 authorize-security-group-ingress \
-     --group-id <bastion-sg-id> \
-     --protocol tcp \
-     --port 8080 \
-     --cidr <my-ip>/32
-   
-   # 기존 0.0.0.0/0 규칙 삭제
-   aws ec2 revoke-security-group-ingress \
-     --group-id <bastion-sg-id> \
-     --protocol tcp \
-     --port 8080 \
-     --cidr 0.0.0.0/0
-   ```
+✅ **8080 포트는 이미 제한되어 있습니다:**
+```hcl
+ingress {
+  from_port   = 8080
+  to_port     = 8080
+  protocol    = "tcp"
+  cidr_blocks = var.allowed_cidr_blocks  # terraform/variables.tf에서 설정한 IP만 허용
+  description = "Kafka-UI access from allowed IPs"
+}
+```
+
+### 접근 가능한 IP 확인
+
+```bash
+cd terraform
+terraform state show aws_security_group.bastion | grep -A 5 "8080"
+```
+
+### 추가 보안 강화 (선택)
+
+**1. Kafka-UI 인증 활성화:**
+```bash
+docker run -d -p 8080:8080 \
+  --name kafka-ui \
+  --restart unless-stopped \
+  -e AUTH_TYPE=LOGIN_FORM \
+  -e SPRING_SECURITY_USER_NAME=admin \
+  -e SPRING_SECURITY_USER_PASSWORD=<strong-password> \
+  -e KAFKA_CLUSTERS_0_NAME=msk \
+  -e KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS="..." \
+  -e KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL=SSL \
+  provectuslabs/kafka-ui
+```
+
+**2. SSH 터널링 사용 (가장 안전):**
+```bash
+# 로컬에서 SSH 터널 생성
+ssh -i msk-key.pem -L 8080:localhost:8080 ec2-user@<bastion-ip>
+
+# 브라우저에서 접속
+http://localhost:8080  # 로컬에서만 접근 가능
+```
+
+이 경우 8080 포트를 보안그룹에서 제거 가능
 
 ---
 
@@ -144,5 +176,7 @@ sudo usermod -aG docker ec2-user
 
 # 재로그인
 exit
-ssh -i msk-key.pem ec2-user@<bastion-ip>
+ssh -i ../msk-key.pem ec2-user@<bastion-ip>  # terraform 폴더에서
+# 또는
+ssh -i msk-key.pem ec2-user@<bastion-ip>     # 프로젝트 루트에서
 ```

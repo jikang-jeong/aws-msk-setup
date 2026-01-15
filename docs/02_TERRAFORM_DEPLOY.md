@@ -62,7 +62,11 @@ terraform plan
 - ✅ Amazon Managed Grafana
 - ✅ CloudWatch Alarms
 - ✅ IAM Roles & Policies
- 
+
+```
+Plan: 55 to add, 0 to change, 0 to destroy.
+```
+
 ### 3. 배포 실행
 ```bash
 terraform apply
@@ -204,8 +208,8 @@ aws lambda list-event-source-mappings \
 
 ### 4. Bastion 서버 접속 확인
 ```bash
-# SSH 접속 테스트
-ssh -i msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip) "echo 'Connection successful'"
+# SSH 접속 테스트 (terraform 폴더에서)
+ssh -i ../msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip) "echo 'Connection successful'"
 
 # 출력: Connection successful
 ```
@@ -384,8 +388,8 @@ vi terraform/variables.tf
 # key_pair_name과 allowed_cidr_blocks를 본인 환경에 맞게 변경
 ```
 
-### 문제 6: 비용 초과 방지
-**실수로 리소스가 삭제되지 않았을 때:**
+### 문제 6: 리소스 정리 실패
+**리소스가 삭제되지 않았을 때:**
 ```bash
 # 모든 MSK 클러스터 확인
 aws kafka list-clusters --region ap-northeast-2

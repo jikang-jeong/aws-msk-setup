@@ -77,6 +77,19 @@ CloudWatch Dashboard는 AWS Console에서 자동 생성됩니다:
 - URL: `<dashboard_url>` (terraform outputs 확인)
 - 또는 CloudWatch Console → Dashboards → `msk-ha-cluster-dashboard`
 
+### 4. Grafana 대시보드 예시
+
+대시보드를 성공적으로 import하면 다음과 같은 모니터링 화면을 볼 수 있습니다:
+
+![Grafana MSK Monitoring Dashboard](./grafana.png)
+
+대시보드에서 확인할 수 있는 주요 메트릭:
+- 실시간 메시지 처리량 (Messages In/Out per second)
+- 토픽별 메시지 현황
+- Consumer Lag 상태
+- 브로커 CPU/Memory 사용률
+- Under Replicated Partitions
+
 ## 모니터링 메트릭
 
 ### Prometheus (Grafana)
@@ -125,11 +138,12 @@ terraform output dashboard_url
 ### Bastion/Kafka-UI 접속
 
 ```bash
-# Bastion IP 확인
+# Bastion IP 확인 (terraform 폴더에서)
+cd terraform
 terraform output bastion_public_ip
 
 # SSH 접속
-ssh -i <your-key.pem> ec2-user@<bastion-ip>
+ssh -i ../msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
 
 # Kafka-UI 접속 (브라우저)
 http://<bastion-ip>:8080
@@ -145,8 +159,9 @@ sudo journalctl -u prometheus -f
 
 1. **Prometheus 데이터 소스 확인**:
    ```bash
-   # Bastion SSH 접속
-   ssh -i <key> ec2-user@<bastion-ip>
+   # Bastion SSH 접속 (terraform 폴더에서)
+   cd terraform
+   ssh -i ../msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
 
    # Prometheus 로그 확인
    sudo journalctl -u prometheus -n 100
@@ -202,31 +217,6 @@ aws lambda invoke --function-name msk-ha-cluster-consumer /tmp/output.json
 aws lambda list-event-source-mappings \
   --function-name msk-ha-cluster-consumer
 ```
-
-## 비용 최적화
-
-### 현재 구성 예상 비용 (ap-northeast-2 기준)
-
-- **AWS Managed Grafana**: $9/월 (Workspace)
-- **Amazon Managed Prometheus**: ~$5-10/월 (수집/저장량에 따라)
-- **Bastion EC2 (t3.small)**: ~$15/월
-- **MSK (3 x kafka.m5.large)**: ~$600/월
-
-### 절감 방안
-
-1. **Prometheus 수집 간격 조정** (bastion-init.sh):
-   ```yaml
-   scrape_interval: 60s  # 30s → 60s
-   ```
-
-2. **Prometheus 보관 기간 단축** (bastion-init.sh):
-   ```yaml
-   storage.tsdb.retention.time: 2h  # 로컬만 유지
-   ```
-
-3. **개발 환경에서는 CloudWatch만 사용**:
-   - Prometheus/Grafana 비활성화
-   - CloudWatch Dashboard만 사용
 
 ## 보안 체크리스트
 

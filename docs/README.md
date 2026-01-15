@@ -126,21 +126,6 @@ msk-ha-cluster/
 
 ---
 
-## 💰 예상 비용 (서울 리전)
-
-| 리소스 | 월간 비용 |
-|--------|----------|
-| MSK (kafka.m5.large × 3) | ~$460 |
-| EBS (100GB × 3) | ~$30 |
-| NAT Gateway | ~$43 |
-| Bastion (t3.micro) | ~$9 |
-| Managed Prometheus | ~$20 |
-| Managed Grafana | ~$9 |
-| Lambda & API Gateway | 무료 티어 |
-| **합계** | **~$571/월** |
-
----
-
 ## 🚀 빠른 시작 (요약)
 
 이미 환경이 준비되었다면:
@@ -158,8 +143,8 @@ vi variables.tf  # key_pair_name, allowed_cidr_blocks 수정
 terraform init
 terraform apply
 
-# 4. Bastion 접속
-ssh -i msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
+# 4. Bastion 접속 (terraform 폴더에서)
+ssh -i ../msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
 
 # 5. Kafka-UI 실행 (Bastion에서)
 docker run -d --name kafka-ui -p 8080:8080 \

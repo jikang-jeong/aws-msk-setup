@@ -27,8 +27,9 @@ Kafka 토픽을 생성하고 메시지를 발행/소비하여 시스템을 테�
 
 ### CLI로 생성
 ```bash
-# Bastion 접속
-ssh -i msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
+# Bastion 접속 (terraform 폴더에서)
+cd terraform
+ssh -i ../msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
 
 # Kafka CLI 설치
 sudo yum install -y java-11
@@ -130,8 +131,9 @@ aws lambda list-event-source-mappings \
 
 ### 2. Prometheus 타겟 확인
 ```bash
-# Bastion 접속 후
-ssh -i msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
+# Bastion 접속 (terraform 폴더에서)
+cd terraform
+ssh -i ../msk-key.pem ec2-user@$(terraform output -raw bastion_public_ip)
 
 # Prometheus 타겟 상태
 curl -s http://127.0.0.1:9090/api/v1/targets | \
