@@ -28,6 +28,7 @@ resource "aws_subnet" "msk" {
   vpc_id            = aws_vpc.msk.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index)
   availability_zone = data.aws_availability_zones.available.names[count.index]
+  # 다일 AZ 사용시 data.aws_availability_zones.available.names[0] 이렇게 하거나 "ap-northeast-2a" 지정.
   tags = { Name = "${var.cluster_name}-subnet-${count.index + 1}" }
 }
 
