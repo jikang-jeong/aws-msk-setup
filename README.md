@@ -75,23 +75,7 @@ AWS MSK (Managed Streaming for Apache Kafka)를 사용한 엔터프라이즈급 
                     (Metrics, Logs, Alarms)
 ```
 
----
-
-## 💰 예상 비용 (서울 리전 기준)
-
-| 리소스 | 사양 | 월간 비용 |
-|--------|------|----------|
-| MSK Cluster | kafka.m5.large × 3 | ~$460 |
-| EBS Volume | 100GB × 3 | ~$30 |
-| NAT Gateway | 1EA | ~$43 |
-| Bastion EC2 | t3.micro | ~$9 |
-| Amazon Managed Prometheus | 기본 | ~$20 |
-| Amazon Managed Grafana | 기본 | ~$9 |
-| Lambda & API Gateway | 무료 티어 | $0 |
-| **합계** | | **~$571/월** |
-
----
-
+--- 
 ## 🛠️ 기술 스택
 
 **Infrastructure:**
