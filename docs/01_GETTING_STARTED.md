@@ -69,7 +69,7 @@ curl https://checkip.amazonaws.com
 curl https://ifconfig.me
 
 # 출력 예: 203.0.113.42
-# → 이 IP를 terraform.tfvars의 allowed_cidr_blocks에 입력
+# → 이 IP를 terraform/variables.tf의 allowed_cidr_blocks에 입력
 ```
 
 ### 2. EC2 키페어 생성
@@ -117,12 +117,12 @@ aws identitystore list-users \
   --region ap-northeast-2
 
 # User ID 예시: c4f8b488-4081-703e-da8f-5cfc374d0e05
-# → terraform.tfvars의 grafana_admin_user_id에 입력
+# → terraform/variables.tf의 grafana_admin_user_id에 입력
 ```
 
 **Option 2: 수동 권한 설정**
 
-User ID를 모르면 terraform.tfvars에서 `grafana_admin_user_id = ""`로 비워두고, 배포 후 수동으로 권한을 부여합니다.
+User ID를 모르면 terraform/variables.tf에서 `grafana_admin_user_id = ""`로 비워두고, 배포 후 수동으로 권한을 부여합니다.
 
 ---
 
@@ -151,9 +151,8 @@ msk-ha-cluster/
     ├── monitoring.tf
     ├── grafana-setup.tf
     ├── dashboard.tf
-    ├── variables.tf
+    ├── variables.tf       # ⚙️ 변수 정의 (여기서 설정!)
     ├── outputs.tf
-    ├── terraform.tfvars.example
     └── dashboards/
         └── msk-overview.json
 ```
@@ -308,19 +307,7 @@ terraform validate
 ### 예상 소요 시간
 - 사전 준비: 10-15분
 - Lambda 빌드: 2-3분
-- Terraform 설정: 5분
-
-### 예상 비용 (서울 리전)
-| 리소스 | 월간 비용 |
-|--------|----------|
-| MSK (kafka.m5.large × 3) | ~$460 |
-| EBS (100GB × 3) | ~$30 |
-| NAT Gateway | ~$43 |
-| Bastion (t3.micro) | ~$9 |
-| Managed Prometheus | ~$20 |
-| Managed Grafana | ~$9 |
-| Lambda & API Gateway | 무료 티어 |
-| **합계** | **~$571/월** |
+- Terraform 설정: 5분 
 
 ### AWS SSO Identity Store ID 찾기
 ```bash

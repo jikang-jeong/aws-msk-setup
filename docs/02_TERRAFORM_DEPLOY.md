@@ -240,11 +240,13 @@ aws lambda update-function-code \
 
 ### MSK 설정 변경
 ```bash
-# variables.tf 또는 terraform.tfvars 수정 후
+# terraform/variables.tf 수정 후
 terraform apply
 
-# 예: 브로커 타입 변경
-# broker_instance_type = "kafka.m5.xlarge"
+# 예: terraform/variables.tf에서 브로커 타입 변경
+# variable "broker_instance_type" {
+#   default = "kafka.m5.xlarge"
+# }
 ```
 
 ### Security Group 규칙 추가
@@ -372,22 +374,21 @@ aws kafka describe-cluster \
 terraform apply
 ```
 
-### 문제 5: terraform.tfvars 변수 오류
+### 문제 5: 변수 설정 오류
 **증상:**
 ```
-Error: No value for required variable
+Error: Invalid value for variable
 ```
 
 **해결:**
 ```bash
-# terraform.tfvars 존재 확인
-ls -la terraform.tfvars
+# terraform/variables.tf 확인
+cat terraform/variables.tf | grep -A 3 "allowed_cidr_blocks"
 
-# 없으면 example 복사
-cp terraform.tfvars.example terraform.tfvars
+# 필수 변수 수정
+vi terraform/variables.tf
 
-# 필수 변수 입력
-vi terraform.tfvars
+# key_pair_name과 allowed_cidr_blocks를 본인 환경에 맞게 변경
 ```
 
 ### 문제 6: 비용 초과 방지
